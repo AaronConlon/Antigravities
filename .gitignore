@@ -1,0 +1,35 @@
+# Binaries and build artifacts
+build/
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go test and coverage
+*.test
+*.out
+
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node / VitePress tutorial artifacts
+node_modules/
+.vitepress/dist/
+.vitepress/cache/
+
+# Local sensitive runtime caches (do not commit actual user credentials)
+accounts.json
+accounts.json.bak
+accounts.json.tmp.*
+config.json
+state.vscdb
+state.vscdb.bak

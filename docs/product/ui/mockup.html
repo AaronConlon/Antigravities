@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antigravities 桌面原生 UI 设计稿 (Mockup)</title>
+  <style>
+    :root {
+      --bg-canvas: #0f1117;
+      --bg-panel: rgba(28, 30, 39, 0.85);
+      --bg-panel-solid: #1c1e27;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --bg-card-hover: rgba(255, 255, 255, 0.08);
+      --bg-active-card: rgba(99, 102, 241, 0.12);
+      --border-color: rgba(255, 255, 255, 0.1);
+      --border-active: rgba(99, 102, 241, 0.35);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-sub: #6b7280;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.15);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.15);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.15);
+      --menubar-bg: rgba(15, 17, 23, 0.75);
+      --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      --radius: 12px;
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg-canvas: #e5e7eb;
+      --bg-panel: rgba(255, 255, 255, 0.88);
+      --bg-panel-solid: #ffffff;
+      --bg-card: rgba(0, 0, 0, 0.03);
+      --bg-card-hover: rgba(0, 0, 0, 0.06);
+      --bg-active-card: rgba(99, 102, 241, 0.08);
+      --border-color: rgba(0, 0, 0, 0.08);
+      --border-active: rgba(99, 102, 241, 0.4);
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --text-sub: #9ca3af;
+      --menubar-bg: rgba(255, 255, 255, 0.8);
+      --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: var(--font);
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 60px;
+      transition: background-color 0.25s ease;
+    }
+
+    /* Top Preview Control Bar */
+    .preview-header {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(8px);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-toggle {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-toggle:hover {
+      background: var(--bg-card-hover);
+    }
+
+    /* Simulated macOS Menu Bar */
+    .macos-menubar {
+      width: 100%;
+      max-width: 1100px;
+      height: 30px;
+      background: var(--menubar-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 10px;
+      margin-top: 16px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .menubar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .menubar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .tray-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--text-main);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .tray-item .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+    }
+
+    /* Popover Arrow */
+    .popover-container {
+      position: relative;
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .popover-arrow {
+      width: 14px;
+      height: 7px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: -1px;
+      z-index: 10;
+      margin-left: 280px; /* Aligns with tray position */
+    }
+
+    .popover-arrow::after {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--bg-panel-solid);
+      border: 1px solid var(--border-color);
+      transform: rotate(45deg) translate(-2px, -2px);
+      left: 2px;
+      top: 2px;
+    }
+
+    /* Main Window Shell */
+    .app-window {
+      width: 390px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Window Header */
+    .win-header {
+      padding: 14px 16px 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .app-title-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-logo {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .app-name {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .btn-icon:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-main);
+    }
+
+    .btn-add {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-add:hover {
+      background: var(--accent-hover);
+      transform: translateY(-0.5px);
+    }
+
+    /* Target Selector Pill */
+    .target-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-card);
+      border-radius: 8px;
+      padding: 3px;
+      border: 1px solid var(--border-color);
+    }
+
+    .target-btn {
+      flex: 1;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 5px 0;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .target-btn.active {
+      background: var(--bg-panel-solid);
+      color: var(--text-main);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      font-weight: 600;
+    }
+
+    /* Content Area */
+    .win-content {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Active Account Hero Card */
+    .active-card {
+      background: var(--bg-active-card);
+      border: 1px solid var(--border-active);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    .active-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--success-bg);
+      color: var(--success);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 12px;
+      letter-spacing: 0.3px;
+    }
+
+    .active-badge::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #4338ca;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .user-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow: hidden;
+    }
+
+    .user-email {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+
+    .user-target-tag {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Quota Bars */
+    .quota-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .quota-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .quota-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+
+    .quota-model-name {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .quota-value {
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    .fill-purple { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+    .fill-cyan { background: linear-gradient(90deg, #06b6d4, #3b82f6); }
+    .fill-amber { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+
+    .quota-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-sub);
+      padding-top: 2px;
+    }
+
+    /* Account Standby List */
+    .account-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .account-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 12px;
+      transition: all 0.15s;
+    }
+    .account-row:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .row-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .avatar-sm {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #374151;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .row-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .row-email {
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 170px;
+    }
+
+    .row-sub {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .badge-status {
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 600;
+    }
+    .badge-healthy { background: var(--success-bg); color: var(--success); }
+    .badge-warning { background: var(--warning-bg); color: var(--warning); }
+    .badge-exhausted { background: var(--danger-bg); color: var(--danger); }
+
+    .btn-switch {
+      background: var(--bg-panel-solid);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-switch:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Footer */
+    .win-footer {
+      padding: 10px 16px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-sub);
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-refresh {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+    .btn-refresh:hover {
+      background: var(--bg-card);
+      color: var(--text-main);
+    }
+
+    /* Toast Notification Simulation */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      background: rgba(17, 24, 39, 0.95);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 999;
+      pointer-events: none;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Modal Simulation */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 1000;
+    }
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      width: 320px;
+      background: var(--bg-panel-solid);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      text-align: center;
+    }
+
+    .modal-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 0;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      flex: 1;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      padding: 8px 0;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .spinning {
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <!-- Top Preview Bar -->
+  <header class="preview-header">
+    <div>
+      <strong>Antigravities 原生桌面 UI 原型设计稿</strong>
+      <span style="margin-left: 8px; opacity: 0.6;">(MyGo Native UI 纯 Go 声明式组件设计规范)</span>
+    </div>
+    <div class="preview-actions">
+      <button class="btn-toggle" onclick="toggleTheme()">
+        <span id="themeIcon">☀️</span> <span id="themeText">切换亮色主题</span>
+      </button>
+      <button class="btn-toggle" onclick="showModal()">
+        <span>+</span> 模拟授权添加账号
+      </button>
+    </div>
+  </header>
+
+  <!-- Simulated macOS Top Menu Bar with Antigravities Tray Item -->
+  <nav class="macos-menubar" aria-label="macOS Menu Bar Simulation">
+    <div class="menubar-left">
+      <span style="font-weight: 700;"></span>
+      <span style="font-weight: 600;">Code</span>
+      <span>File</span>
+      <span>Edit</span>
+      <span>Selection</span>
+      <span>View</span>
+      <span>Window</span>
+      <span>Help</span>
+    </div>
+    <div class="menubar-right">
+      <span>Wi-Fi</span>
+      <span>🔋 98%</span>
+      <div class="tray-item" onclick="togglePopover()">
+        <span class="dot" id="trayDot"></span>
+        <span id="trayLabel">78%</span>
+      </div>
+      <span>周三 14:35</span>
+    </div>
+  </nav>
+
+  <!-- Flyout Window Container with macOS Native Arrow -->
+  <main class="popover-container" id="popoverContainer">
+    <div class="popover-arrow"></div>
+
+    <section class="app-window" aria-label="Antigravities Management Window">
+      <!-- Window Header -->
+      <div class="win-header">
+        <div class="header-top">
+          <div class="app-title-area">
+            <div class="app-logo">A</div>
+            <div class="app-name">Antigravities</div>
+          </div>
+          <div class="header-actions">
+            <button class="btn-add" onclick="showModal()" title="添加新账号">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              添加账号
+            </button>
+            <button class="btn-icon" onclick="triggerRefresh(this)" title="刷新全部额度">
+              <svg class="refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Target Environment Selection Pill -->
+        <div class="target-bar" role="tablist">
+          <div class="target-btn active" role="tab" onclick="switchTarget('ide', this)">Antigravity IDE</div>
+          <div class="target-btn" role="tab" onclick="switchTarget('classic', this)">经典桌面端</div>
+          <div class="target-btn" role="tab" onclick="switchTarget('agy', this)">agy CLI 钥匙串</div>
+        </div>
+      </div>
+
+      <!-- Main Scrollable Content -->
+      <div class="win-content">
+        <!-- Section: Active Account -->
+        <div>
+          <div class="section-label">
+            <span>当前注入账号 (Active)</span>
+            <span id="targetEnvBadge" style="color: var(--accent); font-weight: 500;">目标: Antigravity IDE</span>
+          </div>
+
+          <div class="active-card" id="activeAccountCard">
+            <div class="active-badge">生效中</div>
+            <div class="user-info">
+              <div class="avatar" id="activeAvatar">A</div>
+              <div class="user-text">
+                <div class="user-email" id="activeEmail">aaron.workspace@gmail.com</div>
+                <div class="user-target-tag">Token 有效期剩余 48 分钟 · 已同步</div>
+              </div>
+            </div>
+
+            <!-- Model Quotas -->
+            <div class="quota-container">
+              <div class="quota-item">
+                <div class="quota-labels">
+                  <span class="quota-model-name">Gemini 2.5 Pro</span>
+                  <span class="quota-value" id="activeProVal">78%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-purple" id="activeProFill" style="width: 78%;"></div>
+                </div>
+              </div>
+
+              <div class="quota-item">
+                <div class="quota-labels">
+                  <span class="quota-model-name">Gemini 2.5 Flash</span>
+                  <span class="quota-value">96%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-cyan" style="width: 96%;"></div>
+                </div>
+              </div>
+
+              <div class="quota-item">
+                <div class="quota-labels">
+                  <span class="quota-model-name">Claude 3.7 Sonnet</span>
+                  <span class="quota-value">62%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-amber" style="width: 62%;"></div>
+                </div>
+              </div>
+
+              <div class="quota-meta">
+                <span>配额每日重置</span>
+                <span>重置倒计时: 03h 42m</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Other Standby Accounts -->
+        <div>
+          <div class="section-label">
+            <span>备用账号列表 (Standby Accounts)</span>
+            <span id="accountCount">2 个备用</span>
+          </div>
+
+          <div class="account-list" id="standbyList">
+            <!-- Standby Account 1 -->
+            <div class="account-row" data-id="acc-2">
+              <div class="row-left">
+                <div class="avatar-sm">D</div>
+                <div class="row-text">
+                  <div class="row-email">developer.deepmind@google.com</div>
+                  <div class="row-sub">
+                    <span class="badge-status badge-healthy">充裕 88%</span>
+                    <span>Pro: 88% · Flash: 100%</span>
+                  </div>
+                </div>
+              </div>
+              <button class="btn-switch" onclick="switchAccount('developer.deepmind@google.com', 'D', 88)">切换</button>
+            </div>
+
+            <!-- Standby Account 2 -->
+            <div class="account-row" data-id="acc-3">
+              <div class="row-left">
+                <div class="avatar-sm">T</div>
+                <div class="row-text">
+                  <div class="row-email">test.enterprise.dev@corp.net</div>
+                  <div class="row-sub">
+                    <span class="badge-status badge-warning">预警 15%</span>
+                    <span>Pro: 15% · 即将耗尽</span>
+                  </div>
+                </div>
+              </div>
+              <button class="btn-switch" onclick="switchAccount('test.enterprise.dev@corp.net', 'T', 15)">切换</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Window Footer -->
+      <footer class="win-footer">
+        <button class="btn-refresh" onclick="triggerRefresh(this)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+          <span id="lastRefreshText">刚刚更新</span>
+        </button>
+        <span style="opacity: 0.7;">v0.1.0 · CGO_ENABLED=0</span>
+      </footer>
+    </section>
+  </main>
+
+  <!-- Interactive Modal for Adding Account (Google OAuth Simulation) -->
+  <div class="modal-backdrop" id="oauthModal" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <h3 style="font-size: 15px; margin-bottom: 6px;">Google OAuth 2.0 登录</h3>
+        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+          即将启动本地回环服务 (127.0.0.1:51121) 并在系统默认浏览器打开 Google 登录页。
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="hideModal()">取消</button>
+        <button class="btn-primary" onclick="confirmAddAccount()">在浏览器中授权</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast" role="alert">
+    <span id="toastIcon">✅</span>
+    <span id="toastMsg">账号切换成功</span>
+  </div>
+
+  <script>
+    let currentTarget = 'ide';
+    const targetNames = {
+      'ide': 'Antigravity IDE',
+      'classic': '经典桌面端',
+      'agy': 'agy CLI 钥匙串'
+    };
+
+    function toggleTheme() {
+      const body = document.body;
+      const isDark = body.getAttribute('data-theme') === 'dark';
+      body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeIcon').textContent = isDark ? '🌙' : '☀️';
+      document.getElementById('themeText').textContent = isDark ? '切换暗色主题' : '切换亮色主题';
+    }
+
+    function switchTarget(target, el) {
+      currentTarget = target;
+      document.querySelectorAll('.target-btn').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('targetEnvBadge').textContent = `目标: ${targetNames[target]}`;
+      showToast(`切换目标已设为: ${targetNames[target]}`);
+    }
+
+    function switchAccount(newEmail, initial, quota) {
+      const oldEmail = document.getElementById('activeEmail').textContent;
+      const oldAvatar = document.getElementById('activeAvatar').textContent;
+      const oldProVal = parseInt(document.getElementById('activeProVal').textContent);
+
+      // Promote to active
+      document.getElementById('activeEmail').textContent = newEmail;
+      document.getElementById('activeAvatar').textContent = initial;
+      document.getElementById('activeProVal').textContent = quota + '%';
+      document.getElementById('activeProFill').style.width = quota + '%';
+      document.getElementById('trayLabel').textContent = quota + '%';
+
+      // Update tray dot color based on quota
+      const trayDot = document.getElementById('trayDot');
+      if (quota <= 0) {
+        trayDot.style.background = 'var(--danger)';
+        trayDot.style.boxShadow = '0 0 6px var(--danger)';
+      } else if (quota <= 20) {
+        trayDot.style.background = 'var(--warning)';
+        trayDot.style.boxShadow = '0 0 6px var(--warning)';
+      } else {
+        trayDot.style.background = 'var(--success)';
+        trayDot.style.boxShadow = '0 0 6px var(--success)';
+      }
+
+      // Re-populate standby list
+      const standbyList = document.getElementById('standbyList');
+      standbyList.innerHTML = `
+        <div class="account-row">
+          <div class="row-left">
+            <div class="avatar-sm">${oldAvatar}</div>
+            <div class="row-text">
+              <div class="row-email">${oldEmail}</div>
+              <div class="row-sub">
+                <span class="badge-status ${oldProVal > 20 ? 'badge-healthy' : 'badge-warning'}">额度 ${oldProVal}%</span>
+                <span>Pro: ${oldProVal}%</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn-switch" onclick="switchAccount('${oldEmail}', '${oldAvatar}', ${oldProVal})">切换</button>
+        </div>
+        <div class="account-row">
+          <div class="row-left">
+            <div class="avatar-sm">T</div>
+            <div class="row-text">
+              <div class="row-email">test.enterprise.dev@corp.net</div>
+              <div class="row-sub">
+                <span class="badge-status badge-warning">预警 15%</span>
+                <span>Pro: 15% · 即将耗尽</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn-switch" onclick="switchAccount('test.enterprise.dev@corp.net', 'T', 15)">切换</button>
+        </div>
+      `;
+
+      showToast(`已成功切换至 ${newEmail} (${targetNames[currentTarget]})`);
+    }
+
+    function triggerRefresh(btn) {
+      const icon = btn.querySelector('svg');
+      if (icon) icon.classList.add('spinning');
+      showToast('正在向 Google 配额接口请求最新配额...');
+      setTimeout(() => {
+        if (icon) icon.classList.remove('spinning');
+        document.getElementById('lastRefreshText').textContent = '刚刚更新';
+        showToast('配额缓存刷新完成');
+      }, 900);
+    }
+
+    function showModal() {
+      document.getElementById('oauthModal').classList.add('active');
+    }
+
+    function hideModal() {
+      document.getElementById('oauthModal').classList.remove('active');
+    }
+
+    function confirmAddAccount() {
+      hideModal();
+      showToast('回环服务器已在 127.0.0.1:51121 就绪，模拟回调成功！');
+      setTimeout(() => {
+        showToast('新增账号 aaron.secondary@gmail.com 授权成功');
+      }, 1000);
+    }
+
+    function togglePopover() {
+      const container = document.getElementById('popoverContainer');
+      container.style.display = container.style.display === 'none' ? 'flex' : 'none';
+    }
+
+    let toastTimer;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2400);
+    }
+  </script>
+</body>
+</html>

@@ -38,16 +38,19 @@ Antigravities 是基于 Go 语言（`CGO_ENABLED=0`）与 [MyGo](https://github.
 
 ## 🛠 常用命令 (Verified)
 
+> 💡 **环境隔离提示**：根目录通过 `Makefile` (`export CGO_ENABLED := 0`) 及 `.envrc` 严格限定环境作用域，**不污染开发者全局 Go 环境**。推荐优先使用 `make` 指令。
+
 | 命令 | 用途 | 预估耗时 |
 |---|---|---|
-| `go build ./...` | 本地完整编译检查 (`CGO_ENABLED=0`) | ~2s |
-| `go run .` | 启动本地桌面应用与托盘常驻 | ~1s |
-| `go test -v ./...` | 执行各模块单元测试 | ~3s |
-| `go vet ./...` | Go 官方静态代码分析 | ~1s |
-| `CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o build/antigravities-darwin-arm64 .` | 编译 Apple Silicon 原生二进制 | ~3s |
-| `CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o build/antigravities-windows.exe .` | 验证 Windows 交叉编译 | ~3s |
-| `CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/antigravities-linux .` | 验证 Linux 交叉编译 | ~3s |
-| `cd docs/tutorial && bun run dev` | 启动本地 VitePress 教程文档服务器 | ~1s |
+| `make build` / `go build ./...` | 本地完整编译检查 (`CGO_ENABLED=0`) | ~2s |
+| `make run` / `go run .` | 启动本地桌面应用与托盘常驻 | ~1s |
+| `make test` / `go test -v ./...` | 执行各模块单元测试 | ~3s |
+| `make vet` / `go vet ./...` | Go 官方静态代码分析 | ~1s |
+| `make cross-darwin-arm64` | 编译 Apple Silicon 原生二进制 | ~3s |
+| `make cross-windows` | 验证 Windows 交叉编译 | ~3s |
+| `make cross-linux` | 验证 Linux 交叉编译 | ~3s |
+| `make cross-compile` | 一键并发交叉编译全平台二进制产物 | ~6s |
+| `make tutorial-dev` | 启动本地 VitePress 教程文档服务器 | ~1s |
 
 ---
 
@@ -57,6 +60,8 @@ Antigravities 是基于 Go 语言（`CGO_ENABLED=0`）与 [MyGo](https://github.
 .
 ├── AGENTS.md               # Agent 开发指南与架构铁律（本文档）
 ├── README.md               # 面向用户的项目主页与快速入门
+├── Makefile                # 局部限定 CGO_ENABLED=0 与常用工程指令
+├── .envrc                  # direnv 本地环境变量隔离
 ├── go.mod / go.sum         # Go 模块与依赖版本锁定
 ├── main.go                 # 程序入口、MyGo 运行时初始化、托盘挂载
 ├── internal/

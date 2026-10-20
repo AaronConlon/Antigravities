@@ -13,11 +13,24 @@ go version
 # 输出示例: go version go1.24.0 darwin/arm64
 ```
 
-确保设置了 `CGO_ENABLED=0` 环境变量（这是我们的核心铁律）：
+### 环境变量隔离：如何不影响其他 Go 项目？
 
-```bash
-export CGO_ENABLED=0
-```
+很多初学者容易犯的一个错误是：直接在系统的 `~/.zshrc` 或 `~/.bashrc` 中写入 `export CGO_ENABLED=0`，或者运行全局的 `go env -w CGO_ENABLED=0`。
+
+> ⚠️ **隐患**：如果你的电脑上同时还在开发其他依赖 CGO 的项目（例如使用了带 C 依赖的音视频编解码库或传统的 `go-sqlite3`），全局禁用 CGO 会导致那些项目无法正常构建！
+
+**最佳实践：局部限定（Project-scoped Environment）**
+
+在 Antigravities 中，我们通过根目录的 **`Makefile`** 和 **`.envrc`** 来实现无侵入的局部限定：
+
+1. **Makefile 自动注入**：
+   在 `Makefile` 顶部声明：
+   ```makefile
+   export CGO_ENABLED := 0
+   ```
+   只要通过 `make run`、`make build`、`make test` 执行任务，`CGO_ENABLED=0` 仅对当前进程树生效，一旦退出 make 命令，你的终端全局环境没有任何变化！
+2. **配合 direnv (`.envrc`)**：
+   若你安装了 [direnv](https://direnv.net/)，进入该目录时会自动激活 `.envrc`，离开目录时自动还原。
 
 > 💡 **初学者提示**：关于什么是 CGO、它的运行开销以及为什么我们坚决选择禁用它，请参考第一章的专门讲解：[01. 深入理解：什么是 CGO？为什么要坚决禁用它（CGO_ENABLED=0）？](./01-introduction.md#2-深入理解什么是-cgo为什么要坚决禁用它cgo_enabled0)。
 

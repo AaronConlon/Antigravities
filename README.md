@@ -56,21 +56,29 @@
 
 ## 🛠 常用命令
 
+> 本仓库通过根目录的 `Makefile` 与 `.envrc` 将 `CGO_ENABLED=0` 严格限定在当前工程作用域内，**绝不修改或污染全局 Go 环境**。
+
 ```bash
-# 启动本地开发桌面应用
-go run .
+# 查看所有可用指令
+make help
+
+# 启动本地开发桌面应用与托盘
+make run
 
 # 运行单元测试
-go test -v ./...
+make test
 
 # 静态代码检查
-go vet ./...
+make vet
 
-# 编译 macOS Apple Silicon 原生发布包
-CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "-s -w" -o build/antigravities-darwin-arm64 .
+# 编译当前平台二进制 (产物位于 build/)
+make build
+
+# 一键交叉编译多平台发布包 (macOS arm64/amd64, Windows, Linux)
+make cross-compile
 
 # 启动本地教程站点 (VitePress)
-cd docs/tutorial && bun install && bun run dev
+make tutorial-dev
 ```
 
 ---

@@ -1,150 +1,104 @@
 # AGENTS.md
 
-Antigravities is a lightweight, high-performance desktop application for managing and switching Antigravity accounts. It maintains Google OAuth 2.0 PKCE authentication, refreshes and monitors model quota/rate-limits in the background, and seamlessly switches credentials across Antigravity IDE, Antigravity Classic, and the `agy` CLI tool.
-
-It is written in pure Go (`CGO_ENABLED=0`) utilizing the **MyGo** desktop framework (`github.com/egoist/mygo`) with native declarative UI (`mygo/ui`) and a persistent system tray.
+Antigravities 是基于 Go 语言（`CGO_ENABLED=0`）与 [MyGo](https://github.com/egoist/mygo) 桌面框架构建的轻量级 Antigravity 账号管理与切换工具。维护 Google OAuth 2.0 PKCE 认证生命周期，后台巡检与监控模型配额，并在 Antigravity IDE、经典桌面端与 `agy` CLI 间安全切换凭据。
 
 ---
 
-## 📚 Reference Repositories
+## 🌐 核心约定：中文主导
 
-| Repository | Path | Purpose & What to Reference |
+- **语言规范**：项目内所有文档编写、代码注释、Git Commit 提交信息、Issue/PR 讨论以及 AI Agent 的思考与响应，**一律以中文为主要语言**。专有名词（如 OAuth、PKCE、CGO、SQLite）保持通用英文缩写。
+
+---
+
+## 📚 参考项目与详细规格索引
+
+| 资源 | 路径 / 链接 | 职责与参考内容 |
 |---|---|---|
-| **MyGo** | `/Users/aaron/repos/mygo` | **Technical Stack & Framework**: Purego runtime architecture, zero-CGO desktop runtime, native declarative UI (`mygo/ui`), main-thread event loop, and cross-platform build guidelines. |
-| **Antigravity-Manager** | `/Users/aaron/repos/Antigravity-Manager` | **Business Logic Reference**: Port logic directly from Rust modules: OAuth loopback server (`oauth.rs`), quota calculation (`quota.rs`), account storage (`account.rs`), `state.vscdb` SQLite injection (`db.rs`), process management and macOS Keychain sync for `agy` CLI (`integration.rs`). |
+| **MyGo 框架** | `/Users/aaron/repos/mygo` | **底层技术底座**：Purego 原生绑定、主线程事件循环、声明式 UI (`mygo/ui`) 与构建规范。 |
+| **Antigravity-Manager** | `/Users/aaron/repos/Antigravity-Manager` | **核心业务移植源**：OAuth 回环 (`oauth.rs`)、配额计算 (`quota.rs`)、账号存储 (`account.rs`)、SQLite 注入 (`db.rs`)。 |
+| **模块规划与开发切片** | [`docs/product/`](docs/product/) | 包含 6 大模块的详细实现逻辑与面向初学者的渐进式切片开发计划 (`plan.md`)。 |
+| **UI 交互设计稿** | [`docs/product/ui/mockup.html`](docs/product/ui/mockup.html) | macOS 原生风格托盘与 Flyout 弹窗高保真交互原型。 |
+| **初学者实战教程** | [`docs/tutorial/`](docs/tutorial/) | 基于 VitePress 的渐进式实战教程（8个章节）。 |
 
 ---
 
-## ⚡ Hard Rules & Constraints
+## ⚡ 硬性开发铁律
 
-1. **Strictly Zero Cgo (`CGO_ENABLED=0`)**:
-   - Every package and dependency must compile with `CGO_ENABLED=0`.
-   - Never write `import "C"`. Native OS interop is handled exclusively via `purego` (macOS/Linux) or `syscall` (Windows).
-   - For SQLite operations (`state.vscdb`), use the pure-Go driver (`modernc.org/sqlite`).
-2. **Main Thread UI Discipline**:
-   - MyGo view evaluations and UI updates must execute on the main OS thread.
-   - Background goroutines (OAuth callbacks, quota timers, process watchers) must never touch UI components directly; dispatch through `app.OnMain(...)` or thread-safe channels.
-3. **No Web/Node Runtime Required**:
-   - UI is drawn directly by MyGo's native declarative UI toolkit (`github.com/egoist/mygo/ui`).
-   - Do not add Node.js, Bun, Vite, or webview bundler scripts to the application build pipeline. Deliverable is a single, self-contained native Go binary.
-4. **macOS-First Priority**:
-   - Primary target is macOS (`darwin/arm64` and `darwin/amd64`), with native macOS Keychain and system notification integration.
-   - Windows and Linux support must maintain clean architecture boundaries without breaking the macOS build.
-5. **No Silent Auto-Switching**:
-   - Quota inspections run in the background to update quota caches and status badges.
-   - Account switching **must always be explicitly triggered by the user** in the tray menu or UI window to prevent unexpected editor restarts or state resets during active coding sessions.
+1. **绝对零 Cgo (`CGO_ENABLED=0`)**：
+   - 全库严禁编写 `import "C"`，所有跨平台系统调用依托 `purego` 或 `syscall`。
+   - SQLite 操作强制采用纯 Go 驱动（`modernc.org/sqlite`）。
+2. **主线程 UI 渲染纪律**：
+   - 所有的视图更新与状态变更必须在主线程执行；后台 Goroutine 必须通过 `app.OnMain(...)` 派发。
+3. **免除 Web 构建运行时**：
+   - 直接使用 MyGo 原生声明式组件 (`ui.Context`) 绘制界面，禁止引入 Node/Bun/Vite 等前端打包流水线进入最终应用。
+4. **禁止静默自动切换账号**：
+   - 后台仅更新配额缓存与托盘状态；账号切换**必须由用户在界面显式触发**，防止中断编码进程。
 
 ---
 
-## 🛠 Commands (Verified)
+## 🛠 常用命令 (Verified)
 
-| Command | Purpose | ~Time |
+| 命令 | 用途 | 预估耗时 |
 |---|---|---|
-| `go build ./...` | Build all Go packages locally (`CGO_ENABLED=0`) | ~2s |
-| `go run .` | Launch Antigravities desktop application with tray and native UI | ~1s |
-| `go test -v ./...` | Run unit tests across all internal packages | ~3s |
-| `go vet ./...` | Run standard Go static analysis | ~1s |
-| `GOOS=darwin GOARCH=arm64 go build -o build/antigravities-darwin-arm64 .` | Compile release binary for Apple Silicon | ~3s |
-| `GOOS=darwin GOARCH=amd64 go build -o build/antigravities-darwin-amd64 .` | Compile release binary for Intel Mac | ~3s |
-| `GOOS=windows GOARCH=amd64 go build -o build/antigravities-windows.exe .` | Verify Windows cross-compilation | ~3s |
-| `GOOS=linux GOARCH=amd64 go build -o build/antigravities-linux .` | Verify Linux cross-compilation | ~3s |
+| `go build ./...` | 本地完整编译检查 (`CGO_ENABLED=0`) | ~2s |
+| `go run .` | 启动本地桌面应用与托盘常驻 | ~1s |
+| `go test -v ./...` | 执行各模块单元测试 | ~3s |
+| `go vet ./...` | Go 官方静态代码分析 | ~1s |
+| `CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o build/antigravities-darwin-arm64 .` | 编译 Apple Silicon 原生二进制 | ~3s |
+| `CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o build/antigravities-windows.exe .` | 验证 Windows 交叉编译 | ~3s |
+| `CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/antigravities-linux .` | 验证 Linux 交叉编译 | ~3s |
+| `cd docs/tutorial && bun run dev` | 启动本地 VitePress 教程文档服务器 | ~1s |
 
 ---
 
-## 📂 Architecture & Directory Layout
+## 📂 目录结构与职责映射
 
 ```text
 .
-├── AGENTS.md               # Agent guidelines and architectural handbook
-├── go.mod                  # Go module definition
-├── go.sum                  # Dependency lockfile
-├── main.go                 # App entrypoint, MyGo lifecycle, tray initialization
+├── AGENTS.md               # Agent 开发指南与架构铁律（本文档）
+├── README.md               # 面向用户的项目主页与快速入门
+├── go.mod / go.sum         # Go 模块与依赖版本锁定
+├── main.go                 # 程序入口、MyGo 运行时初始化、托盘挂载
 ├── internal/
-│   ├── account/            # Account entity, accounts.json persistence, file mutex locks
-│   ├── config/             # App configuration, paths, polling interval settings
-│   ├── integration/        # External app integrations & credential injection
-│   │   ├── db.go           # state.vscdb manipulation via modernc.org/sqlite
-│   │   ├── keychain.go     # macOS Keychain sync for agy CLI credentials
-│   │   ├── process.go      # Antigravity IDE / Classic process detection and restart
-│   │   └── protobuf.go     # Unified state sync protobuf payload serialization
-│   ├── oauth/              # Google OAuth 2.0 PKCE flow, loopback HTTP server, token refresh
-│   ├── quota/              # Quota API client, model rate-limits, tier & remaining quota parser
-│   └── ui/                 # MyGo native declarative UI
-│       ├── account_card.go # Account row component (email, active indicator, switch button)
-│       ├── quota_view.go   # Quota progress bars and model limit statistics
-│       ├── tray.go         # System tray icon, menu entries, quick switch actions
-│       └── window.go       # Main management flyout / popover window
-└── assets/                 # App icon (.png / .icns), tray icons (idle / warning / error)
+│   ├── account/            # 账号模型、accounts.json 原子写入与并发读写锁
+│   ├── config/             # 全局配置、轮询周期、偏好目标 IDE
+│   ├── integration/        # state.vscdb 注入 (SQLite)、Protobuf 序列化、Keychain 同步
+│   ├── oauth/              # Google OAuth 2.0 PKCE 流程、本地回环服务器、Token 刷新
+│   ├── quota/              # 模型额度解析、后台巡检引擎、Jitter 防风控
+│   └── ui/                 # MyGo 原生声明式 UI、托盘控制器、Flyout 弹窗
+└── docs/
+    ├── product/            # 6 大模块的详细规范、数据结构与切片计划 (plan.md)
+    └── tutorial/           # 基于 VitePress 的 Go 初学者教学工程
 ```
 
 ---
 
-## 🧩 Business Logic & Technical Implementation Guidelines
+## 🧭 决策启发式矩阵 (Heuristics)
 
-### 1. Google OAuth 2.0 & Token Refresh
-- **Port source**: `Antigravity-Manager/src-tauri/src/modules/oauth.rs`.
-- Standard Google Client ID & Secret matching Antigravity ecosystem.
-- Start a local HTTP loopback server (ephemeral port or fixed fallback) to capture OAuth redirect code.
-- Compute SHA-256 PKCE challenge & verifier.
-- Automatically refresh access tokens `TOKEN_REFRESH_SKEW_SECONDS` (900s) prior to expiration.
-
-### 2. Quota Refresh & Polling
-- **Port source**: `Antigravity-Manager/src-tauri/src/modules/quota.rs`.
-- Query quota endpoints using the active/stored access tokens.
-- Parse model-specific buckets (e.g. `gemini-2.5-pro`, `gemini-2.5-flash`, Claude models).
-- Background ticker runs at a configurable interval (e.g. every 10–30 minutes) to update in-memory and on-disk quota caches without disturbing the UI.
-- Update tray tooltip / icon badge based on lowest model percentage or exhaustion state.
-
-### 3. Account Persistence (`accounts.json`)
-- **Port source**: `Antigravity-Manager/src-tauri/src/modules/account.rs`.
-- Path: `mygo.App.UserDataDir() + "/accounts.json"`.
-- Use atomic write (`write to temp file + rename`) protected by a process-level `sync.RWMutex`.
-- Structure format aligns 1:1 with `Antigravity-Manager`'s JSON schema to ensure bi-directional export/import compatibility.
-
-### 4. System Switching & IDE Injection
-- **Port source**: `Antigravity-Manager/src-tauri/src/modules/db.rs` & `integration.rs`.
-- Target scopes:
-  - `ide`: Antigravity IDE (`Antigravity IDE/User/globalStorage/state.vscdb`)
-  - `classic`: Antigravity Classic (`Antigravity/User/globalStorage/state.vscdb`)
-  - `agy`: CLI credentials in macOS Keychain (`security add-generic-password -s "antigravity" -a ...`)
-- SQLite injection:
-  - Write protobuf-encoded base64 payload into `ItemTable` under keys:
-    - `antigravityUnifiedStateSync.oauthToken`
-    - `antigravityUnifiedStateSync.userStatus`
-    - `antigravityOnboarding` (`"true"`)
-  - Delete stale `jetskiStateSync.agentManagerInitState` to prevent historical user ID mismatches.
-  - Always back up `state.vscdb` to `state.vscdb.bak` before executing updates.
-  - Gracefully notify or restart the target application process after injection.
-
----
-
-## 🧭 Heuristics & Decision Matrix
-
-| Scenario | Action |
+| 场景 | 处理准则 |
 |---|---|
-| Modifying SQLite database | Always check if the IDE process is alive; create a `.bak` backup before opening connection. |
-| Background quota query fails (401/403) | Mark token as expired/invalid, notify via tray badge, do not throw fatal panic. |
-| Network offline | Serve cached quota data with timestamp; indicate offline status in UI. |
-| Adding third-party Go dependencies | Verify `go test -tags=nowebview` or `CGO_ENABLED=0` builds cleanly; reject CGO packages. |
-| UI state change requested from goroutine | Wrap in `app.OnMain(func() { ... })`. |
+| 修改 SQLite 数据库 (`state.vscdb`) | 先判断客户端是否运行；写入前必须生成 `.bak` 备份，并在单一事务内执行。 |
+| 后台配额查询遭遇网络失败或 401/403 | 标记该账号 Token 异常并更新托盘警报，严禁抛出致命 Panic 导致程序崩溃。 |
+| 引入新的第三方 Go 依赖库 | 必须验证其在 `CGO_ENABLED=0` 且多平台下可顺利编译通过，拒绝任何带 Cgo 依赖的库。 |
+| 后台协程需要更新 UI 数据 | 必须使用 `mygo.App.OnMain(func() { ... })` 包装派发。 |
 
 ---
 
-## 🚫 Boundaries & Safety
+## 🚫 行为边界规范 (Boundaries)
 
-### Always Do
-- Enforce `CGO_ENABLED=0` across all target platforms.
-- Atomic file writes for `accounts.json` (tempfile + sync + rename).
-- Keep account data backwards and forwards compatible with `Antigravity-Manager`.
-- Test Go packages with standard table-driven unit tests.
+### 必须做 (Always Do)
+- 所有代码注释、文档与提交信息严格使用中文。
+- 保证多平台在 `CGO_ENABLED=0` 下无错误编译通过。
+- 对配置文件 `accounts.json` 采用原子写盘机制（临时文件 + Sync + Rename）。
+- 保持数据结构与 `Antigravity-Manager` 保持 1:1 双向兼容。
 
-### Ask First
-- Introducing non-standard dependencies or third-party frameworks outside `mygo` / standard library.
-- Altering the `state.vscdb` protobuf schema or injecting unexpected keys into VS Code storage.
-- Adding destructive process termination (`kill -9`) without prompting user for unsaved workspace files.
+### 需先确认 (Ask First)
+- 引入除 `mygo` / 标准库以外的新核心第三方依赖前。
+- 变更 `state.vscdb` 的 Protobuf 注入结构或修改未约定的存储键名。
+- 实施具有破坏性的外部进程强杀（`kill -9`）。
 
-### Never Do
-- Never add `import "C"` under any circumstances.
-- Never silently switch the active account in the background without explicit user click or confirmation.
-- Never write plain credentials to log files or unencrypted public repositories.
-- Never block the MyGo main event loop with synchronous network requests or heavy file I/O.
+### 绝对不做 (Never Do)
+- 严禁引入 `import "C"` 或要求本地环境配置 C 编译器。
+- 严禁在后台静默自动切换编辑器账号。
+- 严禁在主线程事件循环中执行耗时的同步网络请求或重度文件 I/O。
+- 严禁将任何明文密钥、Token 凭据提交进 Git 仓库。

@@ -22,9 +22,9 @@ ehthumbs.db
 Thumbs.db
 
 # Node / VitePress tutorial artifacts
-node_modules/
-.vitepress/dist/
-.vitepress/cache/
+**/node_modules/
+**/.vitepress/dist/
+**/.vitepress/cache/
 
 # Local sensitive runtime caches (do not commit actual user credentials)
 accounts.json

@@ -1,0 +1,14 @@
+{
+  "name": "antigravities-tutorial",
+  "version": "1.0.0",
+  "description": "Antigravities: Go 原生桌面开发入门与实战教程",
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.5.0"
+  }
+}

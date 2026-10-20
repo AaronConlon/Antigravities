@@ -1,6 +1,8 @@
 # 06. 纯 Go SQLite 注入与系统客户端集成
 
-很多初学者认为“在 Go 里操作 SQLite 必须安装 GCC，开启 `CGO_ENABLED=1`”。但在 Antigravities 中，我们坚持 **严格零 Cgo（Zero-Cgo）**，使得代码无论在 macOS、Windows 还是 Linux 上，只要一条 `go build` 就能立刻编译通过。
+很多初学者认为“在 Go 里操作 SQLite 必须安装 GCC，开启 `CGO_ENABLED=1`”。这是因为最常见的 `github.com/mattn/go-sqlite3` 驱动底层绑定了 C 语言编译。但在 Antigravities 中，我们坚持 **严格零 Cgo（Zero-Cgo）**，选用 `modernc.org/sqlite`，使得代码无论在 macOS、Windows 还是 Linux 上，只要一条 `go build` 就能立刻秒级编译通过。
+
+> 📘 **延伸阅读**：若对 CGO 的优缺点与为什么我们要避免它感兴趣，可随时复习 [01. 序言：深入理解什么是 CGO](./01-introduction.md#2-深入理解什么是-cgo为什么要坚决禁用它cgo_enabled0)。
 
 本章我们将学习如何利用纯 Go 驱动 `modernc.org/sqlite`，安全地将账号凭据注入 Antigravity IDE 的 `state.vscdb`。
 

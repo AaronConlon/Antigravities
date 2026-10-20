@@ -19,6 +19,8 @@ go version
 export CGO_ENABLED=0
 ```
 
+> 💡 **初学者提示**：关于什么是 CGO、它的运行开销以及为什么我们坚决选择禁用它，请参考第一章的专门讲解：[01. 深入理解：什么是 CGO？为什么要坚决禁用它（CGO_ENABLED=0）？](./01-introduction.md#2-深入理解什么是-cgo为什么要坚决禁用它cgo_enabled0)。
+
 ---
 
 ## 2. 初始化 Go Module
